@@ -1,18 +1,15 @@
 import { GoogleGenAI } from "@google/genai";
 import axios from "axios";
-import fs from "fs";
-import path from "path";
 import { env } from "../config/env";
 
 const ai = new GoogleGenAI({
   apiKey: env.GEMINI_API_KEY,
 });
 
-export async function createImage(
+export async function createImage (
   userPrompt: string, //what kind of image to generate
-  imageUrl: string, //user's reference image
-  outputFilePath: string //where to save generated image
-) {
+  imageUrl: string,  //where to save generated image
+):Promise<Buffer> {
   const imageResponse = await axios.get(imageUrl, {  // download the image from imageUrl , get it as a raw binary data , not json/text.
     responseType: "arraybuffer",
   });
@@ -63,32 +60,15 @@ export async function createImage(
     if (part.inlineData?.data) {
       const imageData = part.inlineData.data;                 // convert generated base64 image back to file
       const buffer = Buffer.from(imageData, "base64");
+      return buffer ;
+    }  
+}
 
-      const outputDir = path.dirname(outputFilePath);
+ throw new Error("Image generation failed: no image returned");
 
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true });
-      }
-
-      fs.writeFileSync(outputFilePath, buffer);        //save generated image in local folder
-
-      return outputFilePath;      //return the path where generated image was saved
-    }
-  }
-
-  throw new Error("Image generation failed: no image returned");
 }
 
 
-
-
-// the worflow of this function ----
-
-// export async function createImage(
-//   userPrompt: string,
-//   imageUrl: string,
-//   outputFilePath: string
-// ) {
   // 1. Download image from imageUrl
 
   // 2. Convert image to base64
@@ -97,13 +77,12 @@ export async function createImage(
 
   // 4. Extract generated image from response
 
-  // 5. Save generated image to outputFilePath
+  // 5. Save generated image to r2
 
-  // 6. Return outputFilePath
-// }
+  // 6. Return r2
+  
 
 // arraybuffer → get image as raw bytes
 // Buffer → convert between bytes and base64
 // candidates/content/parts → Gemini response structure
 // inlineData.data → generated image base64
-// fs/path → save file locally

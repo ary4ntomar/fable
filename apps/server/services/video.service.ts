@@ -14,10 +14,11 @@ const response = await fetch('https://openrouter.ai/api/v1/videos', {
   method: 'POST',
   headers,
   body: JSON.stringify({
-    model: 'bytedance/seedance-2.0-mini',
+    model: "x-ai/grok-imagine-video",
     prompt:userPrompt,
-    duration: 8,
-    resolution: "480p",
+    duration: 5,
+    resolution: "720p",
+    aspect_ratio:"16:9" ,
     generate_audio:false,
     input_references : imageUrls.map(imageUrl =>({
         "type" : "image_url",
@@ -39,7 +40,11 @@ if (!result.id || !result.polling_url) {
 }
 
 const jobId = result.id;
-const pollingUrl = result.polling_url;
+const pollingUrl = new URL(
+  result.polling_url,
+  "https://openrouter.ai"
+).toString();
+
 console.log(`Job submitted: ${jobId}`);
 console.log(`Status: ${result.status}`);
 
@@ -57,6 +62,7 @@ console.log(`Status: ${result.status}`);
 
   // Keep your existing completed/failed checks here.
    console.log(`Status: ${status.status}`);
+   console.log("Actual video generation cost:", status.usage?.cost);
 
   if (status.status === 'completed') {
     // Step 3: Download the video
@@ -65,15 +71,45 @@ console.log(`Status: ${result.status}`);
     
     console.log(`video ready : ${contentUrl}`);
 
+    const videoResponse = await fetch(contentUrl , { headers } );
+
+    if(!videoResponse.ok){
+      throw new Error("Failed to downlod generated video");
+    }
+
+    const contentType  = videoResponse.headers.get("content-type");
+   
+     if (!contentType) {
+    throw new Error("Video content type is missing");
+  }
+      
+    console.log("video content type:" , contentType) 
+   
+  if (!contentType.toLowerCase().includes("video/mp4")) {
+  throw new Error(`Expected MP4, received: ${contentType}`);
+}  
+
+    const videoBuffer = Buffer.from(         //convert into a nodejs buffer
+      await videoResponse.arrayBuffer()  // read the actual video bytes
+    );
+
     return {
         jobId,
-        videoUrl : contentUrl,
+        videoBuffer,
+        contentType
     };
     
   }
-  
   else if (status.status === "failed"){
     throw new Error(`Generation failed : ${status.error ?? "unknown error"}`);
+  }
+
+  else if(status.status === "cancelled"){
+    throw new Error(`Generation failed: ${status.error ?? "the job was cancelled" } `)
+  }
+
+  else if(status.status === "expired"){
+    throw new Error(`Generation failed: ${status.error ?? "the job expired before completion" } `)
   }
 
 } 

@@ -3,8 +3,9 @@ import { authMiddleware } from "../middleware/auth.middleware";
 import { videoSchema } from "../validators/validator";
 import { prisma } from "../database/db";
 import { generateVideo } from "../services/video.service";
+import { uuid } from "uuidv4";
 export const videoRouter = Router();
-
+import { uploadFile , getSignedFileUrl } from "../services/storage.service";
 videoRouter.use(authMiddleware);
 
 //Video-genration-workflow--
@@ -18,12 +19,12 @@ videoRouter.use(authMiddleware);
 // 7. Return response
 
 
-
 videoRouter.post("/video",async(req,res)=>{
+
       const {data,success,error} = videoSchema.safeParse(req.body);
       if(!success) return res.status(400).json({message:"Invalid request", error: error.flatten().fieldErrors})
 
-     if(!req.userId) return res.status(401).json({message:"Unauthorized"});
+      if(!req.userId) return res.status(401).json({message:"Unauthorized"});
      
 
       // find the avatar whose ID the frontend sent
@@ -53,17 +54,26 @@ videoRouter.post("/video",async(req,res)=>{
       message: "Avatar must have exactly 3 model reference images",
      });
     }
+        const signedImageUrls = await Promise.all(
+      imageUrls.map(imageUrl => getSignedFileUrl(imageUrl))
+        ) 
        
-     const result = await generateVideo( data.prompt ,imageUrls) ;
+     const result = await generateVideo( data.prompt ,signedImageUrls) ;
+  
+
+     const videoId = uuid(); 
+     const videoKey = `videos/${req.userId}/${videoId}.mp4`;
+      
+    await uploadFile(result.videoBuffer,videoKey, result.contentType);
 
     const video = await prisma.avatarVideo.create({
          data:{
             userId : req.userId,
             prompt : data.prompt,
-            videoUrl: result.videoUrl,
-            duration : 8,
-            width:854,
-            height:480,
+            videoUrl: videoKey,
+            duration : 5,
+            width:1280,
+            height:720,
             status:"Done",
             avatarVideoRef:{
                   create:{
@@ -73,9 +83,12 @@ videoRouter.post("/video",async(req,res)=>{
          }
      })
 
+     const playbackUrl = await getSignedFileUrl(video.videoUrl);
+
      return res.status(201).json({
    message: "Video generated successfully", 
    video ,
+   playbackUrl,
 });
 
      
