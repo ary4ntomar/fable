@@ -3,10 +3,10 @@ import { House, Clapperboard, CircleUserRound, Images } from "lucide-react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-background text-foreground w-full overflow-x-hidden">
+    <div className="h-screen flex flex-col bg-background text-foreground w-full overflow-hidden">
       <nav className="sticky top-0 flex items-center justify-between border-b border-border bg-background z-50 px-4 sm:px-8 py-2">
 
-        <header className="font-bold text-2xl md:text-3xl text-accent cursor-default">
+        <header className="font-bold text-2xl md:text-3xl text-accent cursor-default ">
           Fable
         </header>
 
