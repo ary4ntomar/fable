@@ -10,3 +10,9 @@
      --color-accent:#C7A77A;
      --color-border:#302E2A;
 }
+
+html,
+body {
+  min-height: 100%;
+  background: #10100F;
+}
