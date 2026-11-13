@@ -1,28 +1,38 @@
 import type { Request , Response , NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import{env} from "../config/env";
 
+export const authMiddleware= (
+    req : Request,
+    res : Response,
+    next : NextFunction
+) => {
+     
+    const accessToken = req.cookies.accessToken ;
 
-
-export function authMiddleware(req:Request,res:Response,next:NextFunction){
-    const authHeader = req.headers.authorization ;
-
-
-    if(!authHeader || !authHeader.startsWith("Bearer ")){
-         return res.status(401).json({message:"Authorization token is missing or invlaid"})
+    if(!accessToken){
+       return res.status(401).json({message:"token doesn't exist"});
     }
 
-    const token = authHeader.split(" ")[1];
-    if(!token) return res.status(401).json({message:"Token is missing"})
+    const JWT_SECRET = process.env.JWT_SECRET;
+    if(!JWT_SECRET) throw new Error("JWT_SECRET is missing");
+    
+    try {
+          const decoded = jwt.verify(accessToken,JWT_SECRET)   
+          
+          if( decoded === null || typeof decoded === "string" ) {
+            return res.status(401).json({message:"invalid token request"})
+          }
 
-    const decoded = jwt.verify(token,env.JWT_SECRET)
-     if(typeof decoded !== "object" || decoded==null ||
-         typeof decoded.userId !== "string"){
-            return res.status(401).json({
-                message:"Invalid token payload"
-            })
-         } 
-         
-         req.userId = decoded.userId ;
-         return next();
+          if (typeof decoded.sub !== "string") {
+           return res.status(401).json({ message: "Invalid token payload" });
+          }
+
+          const userId = decoded.sub;
+          req.userId = userId; 
+
+          next();
+    } catch(e){
+        return res.status(401).json({message:"Invalid or expired access token"})
+    }
 }
+

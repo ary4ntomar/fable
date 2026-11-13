@@ -8,8 +8,9 @@ export default function Avatar(){
      const fileInputRef = useRef<HTMLInputElement>(null);
      const[file,setFile]=useState< File | null >(null);
      const[prevFile,setPrevFile]=useState< string | null>(null);
-     const[avatarName , setAvatarName]=useState<string>();
-      
+     const[avatarName , setAvatarName]=useState<string>("");
+     const[isGenerating,setIsGenerating] =useState<boolean>(false); 
+
         useEffect(()=>{
              if(!file) {
             setPrevFile(null)
@@ -21,7 +22,20 @@ export default function Avatar(){
          
          return () => { URL.revokeObjectURL(url)
          };
-      },[file])     
+      },[file]);
+      
+      const handleGenerate   = ()=>{
+            if(isGenerating) return ;
+            
+            if (!file || !avatarName.trim() ) return ;
+
+            setIsGenerating(true);
+
+            // avatar api call ..
+
+            
+      }
+       
      
        return (
 
@@ -104,7 +118,7 @@ export default function Avatar(){
 
              </div>
                
-             <button className=" bg-accent text-background border border-border rounded-xl font-semibold px-18 py-2 m-3 cursor-pointer">Generate 3 Headshots</button>
+             <button className=" bg-accent text-background border border-border rounded-xl font-semibold px-18 py-2 m-3 cursor-pointer" onClick={handleGenerate}>Generate 3 Headshots</button>
 
              </div>
                 
@@ -133,7 +147,11 @@ export default function Avatar(){
              </div>  
 
           </section>
-           </main>
 
+           </main>
+         
        </div>
+
+           
+ 
        )}

@@ -1,4 +1,6 @@
 import  express  from "express";
+import cookieParser from "cookie-parser";
+import cors from "cors";
 import { authRouter } from "./routes/auth";
 import { avatarRouter } from "./routes/avatar";
 import {videoRouter }  from "./routes/video";
@@ -6,7 +8,13 @@ import { errorHandler } from "./middleware/error.middleware";
 
 const app = express();
 
+app.use(cors({
+  origin: "http://localhost:3000",
+  credentials: true
+}));
+
 app.use(express.json());
+app.use(cookieParser());
 
 //This makes your local assets folder publicly accessible through HTTP.
 app.use("/assets", express.static("assets"));
@@ -58,7 +66,7 @@ app.get("api/v1/avatars",(req,res)=>{
 
  app.use(errorHandler);
 
-app.listen(3000,()=>{
-    console.log("Running on port 3000......");
+app.listen(3001,()=>{
+    console.log("Running on port 3001......");
 });
 

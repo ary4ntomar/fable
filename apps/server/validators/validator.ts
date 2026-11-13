@@ -17,15 +17,6 @@ export const signinSchema = z.object({
     z.string().min(1)
 })
 
-
-// export const avatarSchema = z.object({
-//     name : 
-//     z.string().min(1),
-//     image :
-//     z.string().url().min(1)
-// })
-
-
 export const avatarNameSchema = z.object({
   name: z.string().min(1)
 });
