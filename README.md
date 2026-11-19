@@ -1,1 +1,1 @@
-> 🚧 **Status: Active Development (v0.x)** — core functionalities are completed, documenting , refoctoring , logout implementation and some brushup and final touch is left , project is in final stage of it's v0.
+> 🚧 **Status: Active Development (v0)** — core functionalities are completed, documenting , refoctoring , logout implementation and some brushup and final touch is left , project is in final stage of it's v0.
