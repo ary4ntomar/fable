@@ -1,5 +1,5 @@
 import express from "express";
-import { randomBytes , createHash } from "node:crypto";
+import { createHash } from "node:crypto";
 import { prisma } from '../database/db';
 
 export const logoutRoute = express();
@@ -9,13 +9,13 @@ logoutRoute.post("/logout", async (req,res)=>{
      const refreshToken  = req.cookies.refreshToken ;
       
      if(refreshToken){
-        const hashToken = createHash("sha256")
+        const tokenHash = createHash("sha256")
        .update(refreshToken)
        .digest("hex")
 
      await prisma.refreshToken.updateMany({
          where: {
-            tokenHash : hashToken,
+            tokenHash,
             revokedAt : null
          }, 
          data: {
@@ -24,8 +24,15 @@ logoutRoute.post("/logout", async (req,res)=>{
       })
     };
 
-     res.clearCookie("refreshToken");
-     res.clearCookie("accessToken");
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+      path: "/",
+    };
+
+     res.clearCookie("refreshToken" , cookieOptions);
+     res.clearCookie("accessToken" , cookieOptions);
 
 
      return res.status(200).json({

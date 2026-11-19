@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { Playfair_Display, Inter, Geist } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+import { Providers } from "./provider";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const playfairDisplay = Playfair_Display({
   variable: "--font-playfair",
@@ -23,9 +27,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${playfairDisplay.variable} ${inter.variable} h-full antialiased`}
+      className={cn("h-full", "antialiased", playfairDisplay.variable, inter.variable, "font-sans", geist.variable)}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+         <Providers> {children}</Providers>
+      </body>
     </html>
   );
 }

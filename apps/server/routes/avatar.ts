@@ -14,7 +14,7 @@ export const avatarRouter = Router();
 avatarRouter.use(authMiddleware)
 
  avatarRouter.post("/avatar", avatarUpload.single("image"),async(req,res)=>{
-    
+              
           
     if(!req.file){
         return res.status(400).json({
@@ -70,10 +70,16 @@ avatarRouter.use(authMiddleware)
             avatarImage:true
         },
      });
+      
+    const imgUrls = avatar.avatarImage.filter((img) => img.type === "model");
 
+    const signedImages = await Promise.all(
+      imgUrls.map((img) => getSignedFileUrl(img.url))
+    );
 
      return res.status(201).json({
      message: "Avatar created successfully",
-      avatar,
+      avatarId : avatar.id,
+      images:signedImages
 });
 });

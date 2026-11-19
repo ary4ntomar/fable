@@ -2,6 +2,7 @@ import express from "express";
 import { signupSchema } from "../validators/validator";
 import { prisma } from '../database/db';
 import bcrypt from "bcrypt";
+import { createAuthSession } from "../services/auth.service";
 
 export const signupRoute = express();
 
@@ -12,20 +13,25 @@ signupRoute.post("/signup",async(req,res)=>{
 
     const userExist = await prisma.user.findUnique({
              where:{
-                username: data.username
+                username
              }
     });
 
-    if(userExist) return res.status(409).json({message:"user already exist"});
+    if(userExist) return res.status(409).json({message:"User already exists"});
     
      const hashpassword = await bcrypt.hash(password , 10 );
 
-     await prisma.user.create({
+    const newUser = await prisma.user.create({
         data:{
             username,
             password : hashpassword,
         }
      })
 
-     return res.status(201).json({message:"Account successfully created"});
+     await createAuthSession(newUser.id , res);
+
+     return res.status(201).json({
+      message:"Account Successfully created"
+     })
+
 })

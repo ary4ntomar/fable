@@ -1,5 +1,5 @@
 {
-  "name": "higsfield",
+  "name": "Fable",
   "private": true,
   "scripts": {
     "build": "turbo run build",
